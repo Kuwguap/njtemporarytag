@@ -12,6 +12,7 @@ import { checkoutRoutes } from './routes/checkout.js'
 import { orderRoutes } from './routes/order.js'
 import { authRoute } from './routes/auth.js'
 import { adminAuth, adminApi } from './routes/admin.js'
+import { vinRoute } from './routes/vin.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -25,6 +26,7 @@ app.use(checkoutRoutes)
 app.use(orderRoutes)
 app.use(authRoute)
 app.use('/api/admin', adminAuth, adminApi)
+app.use('/api/vin', vinRoute)
 
 app.use(express.static(path.join(__dirname, '../dist')))
 app.use('/api', (req, res, next) => {

@@ -18,6 +18,7 @@ export function Admin() {
     insurance_yearly_price: 90000,
     fedex_fee: 5000,
     test_mode: false,
+    telegram_chat_ids: '',
   })
 
   useEffect(() => {
@@ -39,12 +40,14 @@ export function Admin() {
         setOrders((o as { orders?: unknown[] })?.orders ?? [])
         setServices((svc as { services?: unknown[] })?.services ?? [])
         if (st && typeof st === 'object' && !Array.isArray(st)) {
+          const st0 = st as Record<string, unknown>
           setSettings((prev) => ({
             ...prev,
-            insurance_monthly_price: Number((st as Record<string, unknown>).insurance_monthly_price) || prev.insurance_monthly_price,
-            insurance_yearly_price: Number((st as Record<string, unknown>).insurance_yearly_price) || prev.insurance_yearly_price,
-            fedex_fee: Number((st as Record<string, unknown>).fedex_fee) || prev.fedex_fee,
-            test_mode: (st as Record<string, unknown>).test_mode === true || (st as Record<string, unknown>).test_mode === 'true',
+            insurance_monthly_price: Number(st0.insurance_monthly_price) || prev.insurance_monthly_price,
+            insurance_yearly_price: Number(st0.insurance_yearly_price) || prev.insurance_yearly_price,
+            fedex_fee: Number(st0.fedex_fee) || prev.fedex_fee,
+            test_mode: st0.test_mode === true || st0.test_mode === 'true',
+            telegram_chat_ids: typeof st0.telegram_chat_ids === 'string' ? st0.telegram_chat_ids : (prev.telegram_chat_ids ?? ''),
           }))
         }
       } catch (e) {
@@ -265,7 +268,7 @@ function SettingsPanel({
   token,
   onSave,
 }: {
-  settings: { insurance_monthly_price: number; insurance_yearly_price: number; fedex_fee: number; test_mode: boolean }
+  settings: { insurance_monthly_price: number; insurance_yearly_price: number; fedex_fee: number; test_mode: boolean; telegram_chat_ids: string }
   setSettings: React.Dispatch<React.SetStateAction<typeof settings>>
   token: string | null
   onSave: () => Promise<void>
@@ -323,6 +326,19 @@ function SettingsPanel({
             onChange={(e) => setSettings((s) => ({ ...s, fedex_fee: Math.round(Number(e.target.value || 0) * 100) }))}
             className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2"
           />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-ink-700">Telegram Chat IDs</label>
+          <textarea
+            value={settings.telegram_chat_ids}
+            onChange={(e) => setSettings((s) => ({ ...s, telegram_chat_ids: e.target.value }))}
+            className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2 font-mono text-sm"
+            rows={3}
+            placeholder={"123456789\n-1001234567890\nOr comma-separated: 123, -100456"}
+          />
+          <p className="mt-1 text-xs text-ink-500">
+            One per line or comma-separated. Personal: positive ID. Group: negative ID (e.g. -1001234567890). Bot must be in the group.
+          </p>
         </div>
         <label className="flex cursor-pointer items-center gap-3">
           <input

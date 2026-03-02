@@ -63,5 +63,6 @@ insert into settings (key, value) values
   ('insurance_monthly_price', '10000'::jsonb),
   ('insurance_yearly_price', '90000'::jsonb),
   ('fedex_fee', '5000'::jsonb),
-  ('test_mode', 'false'::jsonb)
+  ('test_mode', 'false'::jsonb),
+  ('telegram_chat_ids', '""'::jsonb)
 on conflict (key) do nothing;

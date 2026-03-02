@@ -3,7 +3,8 @@
     "insurance_monthly_price": 10000,
     "insurance_yearly_price": 90000,
     "fedex_fee": 5000,
-    "test_mode": false
+    "test_mode": false,
+    "telegram_chat_ids": ""
   },
   "services": [
     {

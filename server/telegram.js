@@ -1,10 +1,15 @@
+import { getSettings } from './db.js'
+
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
-const CHAT_IDS = process.env.TELEGRAM_CHAT_IDS || ''
 
 export async function sendOrderToTelegram(order) {
-  if (!BOT_TOKEN || !CHAT_IDS) return { sent: false, error: 'Telegram not configured' }
+  if (!BOT_TOKEN) return { sent: false, error: 'Telegram bot token not configured' }
 
-  const ids = CHAT_IDS.split(',').map((s) => s.trim()).filter(Boolean)
+  const settings = await getSettings()
+  const chatIdsRaw = (settings?.telegram_chat_ids ?? process.env.TELEGRAM_CHAT_IDS ?? '').trim()
+  if (!chatIdsRaw) return { sent: false, error: 'No Telegram chat IDs configured. Add them in Admin → Settings.' }
+
+  const ids = chatIdsRaw.split(/[,\n]+/).map((s) => s.trim()).filter(Boolean)
   if (ids.length === 0) return { sent: false, error: 'No chat IDs' }
 
   const lines = [

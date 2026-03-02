@@ -55,12 +55,14 @@ adminApi.get('/settings', async (_, res) => {
 adminApi.post('/settings', async (req, res) => {
   try {
     const updates = req.body || {}
-    const allowed = ['insurance_monthly_price', 'insurance_yearly_price', 'fedex_fee', 'test_mode']
+    const allowed = ['insurance_monthly_price', 'insurance_yearly_price', 'fedex_fee', 'test_mode', 'telegram_chat_ids']
     const filtered = {}
     for (const k of allowed) {
       if (k in updates) {
         if (k === 'test_mode') {
           filtered[k] = updates[k] === true || updates[k] === 'true'
+        } else if (k === 'telegram_chat_ids') {
+          filtered[k] = String(updates[k] ?? '').trim()
         } else {
           const num = Number(updates[k])
           filtered[k] = isNaN(num) ? 0 : Math.round(num)

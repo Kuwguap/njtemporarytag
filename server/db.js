@@ -131,6 +131,7 @@ const DEFAULT_SETTINGS = {
   insurance_yearly_price: 90000,
   fedex_fee: 5000,
   test_mode: false,
+  telegram_chat_ids: '',
 }
 
 export async function getSettings() {
@@ -139,7 +140,8 @@ export async function getSettings() {
     const out = { ...DEFAULT_SETTINGS }
     for (const row of data || []) {
       let v = row?.value
-      if (v === 'false' || v === false) out[row.key] = false
+      if (row.key === 'telegram_chat_ids') out[row.key] = (v != null ? String(v) : '') || ''
+      else if (v === 'false' || v === false) out[row.key] = false
       else if (v === 'true' || v === true) out[row.key] = true
       else if (typeof v === 'number') out[row.key] = v
       else out[row.key] = parseInt(v, 10) || v
@@ -157,7 +159,11 @@ export async function getSettings() {
 export async function updateSettings(updates) {
   if (useSupabase) {
     for (const [key, value] of Object.entries(updates)) {
-      const jsonVal = typeof value === 'boolean' ? value : Number(value)
+      const jsonVal = key === 'telegram_chat_ids'
+        ? String(value ?? '')
+        : typeof value === 'boolean'
+          ? value
+          : Number(value)
       const { error } = await supabase.from('settings').upsert(
         { key, value: jsonVal, updated_at: new Date().toISOString() },
         { onConflict: 'key' }

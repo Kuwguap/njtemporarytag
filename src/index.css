@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply font-body text-ink-800 antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-amber; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-amber px-5 py-2.5 font-display font-semibold text-ink-950 transition-all duration-200 hover:bg-amber-light hover:scale-[1.02] active:scale-[0.98];
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-ink-300 bg-transparent px-5 py-2.5 font-display font-semibold text-ink-800 transition-all duration-200 hover:border-amber hover:text-amber active:scale-[0.98];
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .btn-secondary-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-ink-300 bg-transparent px-5 py-2.5 font-display font-semibold text-ink-200 transition-all duration-200 hover:border-amber hover:text-amber active:scale-[0.98];
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .section-padding { @apply px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24; }
+  .container-narrow { @apply mx-auto max-w-5xl; }
+  .container-wide { @apply mx-auto max-w-7xl; }
+}

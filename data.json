@@ -1,0 +1,14 @@
+{
+  "services": [
+    {
+      "id": "default",
+      "title": "Standard Temp Tag",
+      "description": "Same-day temporary vehicle tag. Email or 1-hour car delivery. MVC compliant, 7-day validity.",
+      "price": 15000,
+      "image": null,
+      "created_at": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "orders": [],
+  "activity": []
+}

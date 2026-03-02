@@ -55,7 +55,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link to="/#services" className="btn-primary hidden sm:inline-flex">
+          <Link to="/checkout" className="btn-primary hidden sm:inline-flex">
             BUY IT NOW
           </Link>
           <button
@@ -86,7 +86,7 @@ export function Header() {
               </Link>
             ))}
             <Link
-              to="/#services"
+              to="/checkout"
               className="btn-primary mt-2 w-full justify-center"
               onClick={() => setOpen(false)}
             >

@@ -108,11 +108,11 @@ export function Index() {
             Licensed dealer. MVC verified. Email in minutes, FedEx delivery, or 1-hour car delivery.
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Link to="/#services" className="btn-primary text-base">
+            <Link to="/checkout" className="btn-primary text-base">
               BUY IT NOW
               <ArrowRight className="h-5 w-5" />
             </Link>
-            <Link to="/#how-it-works" className="btn-secondary-dark text-base">
+            <Link to="/checkout" className="btn-secondary-dark text-base">
               GET MY TEMP TAG
             </Link>
           </div>
@@ -152,7 +152,7 @@ export function Index() {
             ))}
           </div>
           <div className="mt-10 text-center">
-            <Link to="/#services" className="btn-primary">View Packages</Link>
+            <Link to="/checkout" className="btn-primary">View Packages</Link>
           </div>
         </div>
       </section>
@@ -257,7 +257,7 @@ export function Index() {
                 </li>
               ))}
             </ul>
-            <Link to="/#services" className="btn-primary mt-6 w-full sm:w-auto">
+            <Link to="/checkout" className="btn-primary mt-6 w-full sm:w-auto">
               BUY IT NOW
             </Link>
           </div>
@@ -279,7 +279,7 @@ export function Index() {
             <div className="mt-10 rounded-3xl border border-ink-200 bg-ink-50 p-12 text-center">
               <p className="text-ink-600">Loading packages…</p>
               <p className="mt-2 text-sm text-ink-500">If none appear, the default $150 package is available.</p>
-              <Link to="/checkout/default" className="btn-primary mt-6">BUY IT NOW — $150</Link>
+              <Link to="/checkout" className="btn-primary mt-6">BUY IT NOW — $150</Link>
             </div>
           )}
         </div>
@@ -326,7 +326,7 @@ export function Index() {
           Same-day. Licensed. MVC verified. Get back on the road today.
         </p>
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link to="/#services" className="btn-primary">
+          <Link to="/checkout" className="btn-primary">
             BUY IT NOW
             <ArrowRight className="h-5 w-5" />
           </Link>

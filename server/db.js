@@ -91,7 +91,7 @@ export async function getOrders() {
 
 export async function getStats() {
   const orders = await getOrders()
-  const total = orders.reduce((sum, o) => sum + (o.price || 0) + (o.insurance_fee || 0), 0)
+  const total = orders.reduce((sum, o) => sum + (o.price || 0) + (o.insurance_fee || 0) + (o.delivery_fee || 0), 0)
   return {
     ordersCount: orders.length,
     totalPayments: total,
@@ -124,4 +124,47 @@ export async function deleteService(id) {
 
 export async function getServicesForAdmin() {
   return getServices()
+}
+
+const DEFAULT_SETTINGS = {
+  tag_price: 15000,
+  insurance_monthly_price: 10000,
+  insurance_yearly_price: 90000,
+  fedex_fee: 5000,
+  test_mode: false,
+}
+
+export async function getSettings() {
+  if (useSupabase) {
+    const { data } = await supabase.from('settings').select('key, value')
+    const out = { ...DEFAULT_SETTINGS }
+    for (const row of data || []) {
+      let v = row?.value
+      if (v === 'false' || v === false) out[row.key] = false
+      else if (v === 'true' || v === true) out[row.key] = true
+      else if (typeof v === 'number') out[row.key] = v
+      else out[row.key] = parseInt(v, 10) || v
+    }
+    return out
+  }
+  try {
+    const j = loadJson()
+    return { ...DEFAULT_SETTINGS, ...(j.settings || {}) }
+  } catch {
+    return DEFAULT_SETTINGS
+  }
+}
+
+export async function updateSettings(updates) {
+  if (useSupabase) {
+    for (const [key, value] of Object.entries(updates)) {
+      const jsonVal = typeof value === 'boolean' ? value : (key === 'test_mode' ? value === 'true' || value === true : Number(value))
+      await supabase.from('settings').upsert({ key, value: jsonVal, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+    }
+    return getSettings()
+  }
+  const j = loadJson()
+  j.settings = { ...(j.settings || {}), ...updates }
+  saveJson(j)
+  return getSettings()
 }

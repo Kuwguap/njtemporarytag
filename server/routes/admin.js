@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import jwt from 'jsonwebtoken'
-import { getOrders, getStats, getServicesForAdmin, addService, deleteService } from '../db.js'
+import { getOrders, getStats, getServicesForAdmin, addService, deleteService, getSettings, updateSettings } from '../db.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod'
 
@@ -45,4 +45,22 @@ adminRoutes.post('/api/admin/services', async (req, res) => {
 adminRoutes.delete('/api/admin/services/:id', async (req, res) => {
   await deleteService(req.params.id)
   res.json({ ok: true })
+})
+
+adminRoutes.get('/api/admin/settings', async (_, res) => {
+  const settings = await getSettings()
+  res.json(settings)
+})
+
+adminRoutes.post('/api/admin/settings', async (req, res) => {
+  const updates = req.body || {}
+  const allowed = ['tag_price', 'insurance_monthly_price', 'insurance_yearly_price', 'fedex_fee', 'test_mode']
+  const filtered = {}
+  for (const k of allowed) {
+    if (k in updates) {
+      filtered[k] = k === 'test_mode' ? (updates[k] === true || updates[k] === 'true') : Number(updates[k]) || 0
+    }
+  }
+  const settings = await updateSettings(filtered)
+  res.json(settings)
 })

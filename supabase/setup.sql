@@ -40,6 +40,7 @@ create table if not exists orders (
 );
 
 alter table orders add column if not exists delivery_email text;
+alter table orders add column if not exists delivery_fee integer default 0;
 
 create table if not exists activity (
   id uuid primary key default gen_random_uuid(),
@@ -51,3 +52,17 @@ create table if not exists activity (
 insert into services (id, title, description, price) values
   ('default', 'Standard Temp Tag', 'Same-day temporary vehicle tag. Email, driver, or mail delivery.', 15000)
 on conflict (id) do nothing;
+
+create table if not exists settings (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz default now()
+);
+
+insert into settings (key, value) values
+  ('tag_price', '15000'::jsonb),
+  ('insurance_monthly_price', '10000'::jsonb),
+  ('insurance_yearly_price', '90000'::jsonb),
+  ('fedex_fee', '5000'::jsonb),
+  ('test_mode', 'false')
+on conflict (key) do nothing;

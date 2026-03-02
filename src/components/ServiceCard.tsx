@@ -28,7 +28,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
         <div className="mt-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span className="font-display text-2xl font-bold text-amber">{formatPrice(service.price)}</span>
           <Link
-            to={`/checkout/${service.id}`}
+            to="/checkout"
             className="btn-primary inline-flex w-full sm:w-auto"
           >
             BUY IT NOW

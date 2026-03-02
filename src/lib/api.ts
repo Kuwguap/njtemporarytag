@@ -20,6 +20,24 @@ export interface OrderRecord {
   [key: string]: unknown
 }
 
+export async function fetchSettings(): Promise<{
+  tag_price: number
+  insurance_monthly_price: number
+  insurance_yearly_price: number
+  fedex_fee: number
+  test_mode: boolean
+}> {
+  const res = await fetch(`${API_URL}/api/settings`)
+  if (!res.ok) return {
+    tag_price: 15000,
+    insurance_monthly_price: 10000,
+    insurance_yearly_price: 90000,
+    fedex_fee: 5000,
+    test_mode: false,
+  }
+  return res.json()
+}
+
 export async function fetchServices(): Promise<Service[]> {
   const res = await fetch(`${API_URL}/api/services`)
   if (!res.ok) throw new Error('Failed to fetch services')

@@ -16,22 +16,46 @@ export function OrderComplete() {
   const [status, setStatus] = useState<'loading' | 'form' | 'success' | 'error'>('loading')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [form, setForm] = useState({
-    deliveryDate: '',
-    deliveryTime: '',
-    deliveryMethod: 'email',
-    confirmationEmail: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
+  const [form, setForm] = useState(() => {
+    try {
+      const s = typeof window !== 'undefined' ? sessionStorage.getItem('checkout_delivery') : null
+      const p = s ? JSON.parse(s) : null
+      return {
+        deliveryDate: '',
+        deliveryTime: '',
+        deliveryMethod: (p?.deliveryMethod as 'email' | 'driver' | 'overnight_fedex') || 'email',
+        confirmationEmail: '',
+        firstName: '',
+        lastName: '',
+        email: p?.email || '',
+        phone: '',
+        address: '',
     vin: '',
     carMakeModel: '',
     color: '',
     insuranceType: 'own' as 'own' | 'monthly' | 'yearly',
     insuranceCompany: '',
     insurancePolicy: '',
+      }
+    } catch {
+      return {
+        deliveryDate: '',
+        deliveryTime: '',
+        deliveryMethod: 'email' as const,
+        confirmationEmail: '',
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        address: '',
+        vin: '',
+        carMakeModel: '',
+        color: '',
+        insuranceType: 'own' as 'own' | 'monthly' | 'yearly',
+        insuranceCompany: '',
+        insurancePolicy: '',
+      }
+    }
   })
 
   useEffect(() => {
@@ -173,7 +197,7 @@ export function OrderComplete() {
               <label className="block text-sm font-medium text-ink-700">Delivery method</label>
               <select
                 value={form.deliveryMethod}
-                onChange={(e) => setForm((f) => ({ ...f, deliveryMethod: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, deliveryMethod: e.target.value as 'email' | 'driver' | 'overnight_fedex' }))}
                 className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5"
               >
                 {DELIVERY_METHODS.map((m) => (

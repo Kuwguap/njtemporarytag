@@ -3,7 +3,7 @@ import { AdminLogin } from './AdminLogin'
 import { getAuthToken, clearAuthToken } from '@/lib/store'
 import { fetchAdmin, postAdmin, deleteAdmin } from '@/lib/api'
 
-type Tab = 'analytics' | 'orders' | 'services'
+type Tab = 'analytics' | 'orders' | 'services' | 'settings'
 
 export function Admin() {
   const [token, setToken] = useState<string | null>(null)
@@ -13,6 +13,13 @@ export function Admin() {
   const [services, setServices] = useState<unknown[]>([])
   const [loading, setLoading] = useState(true)
   const [newService, setNewService] = useState({ title: '', description: '', price: 15000, image: '' })
+  const [settings, setSettings] = useState({
+    tag_price: 15000,
+    insurance_monthly_price: 10000,
+    insurance_yearly_price: 90000,
+    fedex_fee: 5000,
+    test_mode: false,
+  })
 
   useEffect(() => {
     setToken(getAuthToken())
@@ -25,11 +32,13 @@ export function Admin() {
       fetchAdmin('/api/admin/stats', token),
       fetchAdmin('/api/admin/orders', token),
       fetchAdmin('/api/admin/services', token),
+      fetchAdmin('/api/admin/settings', token),
     ])
-      .then(([s, o, svc]) => {
+      .then(([s, o, svc, st]) => {
         setStats(s as Record<string, unknown>)
         setOrders((o as { orders?: unknown[] })?.orders ?? [])
         setServices((svc as { services?: unknown[] })?.services ?? [])
+        if (st && typeof st === 'object') setSettings((prev) => ({ ...prev, ...(st as object) }))
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -71,6 +80,7 @@ export function Admin() {
     { key: 'analytics', label: 'Analytics' },
     { key: 'orders', label: 'Orders' },
     { key: 'services', label: 'Services' },
+    { key: 'settings', label: 'Settings' },
   ]
 
   return (
@@ -138,7 +148,7 @@ export function Admin() {
               <tbody>
                 {(orders as Record<string, unknown>[]).map((o) => {
                   const customer = [o.first_name, o.last_name].filter(Boolean).join(' ') || '—'
-                  const total = (Number(o.price ?? 0) + Number(o.insurance_fee ?? 0)) / 100
+                  const total = (Number(o.price ?? 0) + Number(o.insurance_fee ?? 0) + Number((o as Record<string, unknown>).delivery_fee ?? 0)) / 100
                   const ins = o.insurance_type === 'monthly' ? '$100/mo' : o.insurance_type === 'yearly' ? '$900/yr' : o.insurance_company ? 'Own' : '—'
                   const deliveryMethodDisplay = o.delivery_method === 'overnight_fedex' ? 'FedEx Delivery' : o.delivery_method === 'driver' ? 'Driver' : o.delivery_method === 'email' ? 'Email' : String(o.delivery_method || '—')
                   const delivery: string = o.details_complete ? (o.delivery_date ? `${deliveryMethodDisplay}, ${String(o.delivery_date)}` : deliveryMethodDisplay) : 'Pending'
@@ -218,7 +228,103 @@ export function Admin() {
             </div>
           </div>
         )}
+        {!loading && tab === 'settings' && (
+          <SettingsPanel
+            settings={settings}
+            setSettings={setSettings}
+            token={token}
+            onSave={async () => {
+              if (!token) return
+              const updated = await postAdmin('/api/admin/settings', token, settings) as typeof settings
+              setSettings(updated)
+            }}
+          />
+        )}
       </div>
     </div>
+  )
+}
+
+function SettingsPanel({
+  settings,
+  setSettings,
+  token,
+  onSave,
+}: {
+  settings: { tag_price: number; insurance_monthly_price: number; insurance_yearly_price: number; fedex_fee: number; test_mode: boolean }
+  setSettings: React.Dispatch<React.SetStateAction<typeof settings>>
+  token: string | null
+  onSave: () => Promise<void>
+}) {
+  const [saving, setSaving] = useState(false)
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!token) return
+    setSaving(true)
+    try {
+      await onSave()
+    } finally {
+      setSaving(false)
+    }
+  }
+  return (
+    <form onSubmit={handleSubmit} className="max-w-md space-y-6 rounded-2xl border border-ink-200 bg-white p-6">
+      <h3 className="font-display text-lg font-semibold text-ink-900">Site Settings</h3>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-ink-700">Tag Price (cents)</label>
+          <input
+            type="number"
+            value={settings.tag_price}
+            onChange={(e) => setSettings((s) => ({ ...s, tag_price: Number(e.target.value) }))}
+            className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2"
+          />
+          <p className="mt-1 text-xs text-ink-500">15000 = $150</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-ink-700">Insurance Monthly (cents)</label>
+          <input
+            type="number"
+            value={settings.insurance_monthly_price}
+            onChange={(e) => setSettings((s) => ({ ...s, insurance_monthly_price: Number(e.target.value) }))}
+            className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2"
+          />
+          <p className="mt-1 text-xs text-ink-500">10000 = $100</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-ink-700">Insurance Yearly (cents)</label>
+          <input
+            type="number"
+            value={settings.insurance_yearly_price}
+            onChange={(e) => setSettings((s) => ({ ...s, insurance_yearly_price: Number(e.target.value) }))}
+            className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2"
+          />
+          <p className="mt-1 text-xs text-ink-500">90000 = $900</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-ink-700">FedEx Delivery Fee (cents)</label>
+          <input
+            type="number"
+            value={settings.fedex_fee}
+            onChange={(e) => setSettings((s) => ({ ...s, fedex_fee: Number(e.target.value) }))}
+            className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2"
+          />
+          <p className="mt-1 text-xs text-ink-500">5000 = $50</p>
+        </div>
+        <label className="flex cursor-pointer items-center gap-3">
+          <input
+            type="checkbox"
+            checked={settings.test_mode}
+            onChange={(e) => setSettings((s) => ({ ...s, test_mode: e.target.checked }))}
+            className="h-4 w-4 rounded border-ink-300"
+          />
+          <span className="text-sm font-medium text-ink-700">Test mode (skip payment / simulate)</span>
+        </label>
+        <p className="text-xs text-ink-500">When enabled, checkout skips Stripe and creates a test order</p>
+      </div>
+      <button type="submit" disabled={saving} className="btn-primary">
+        {saving ? 'Saving…' : 'Save Settings'}
+      </button>
+    </form>
   )
 }

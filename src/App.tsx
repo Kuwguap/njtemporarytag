@@ -1,7 +1,8 @@
 import { Routes, Route } from 'react-router-dom'
 import { Header } from './components/Header'
 import { Index } from './pages/Index'
-import { Checkout } from './pages/Checkout'
+import { CheckoutDelivery } from './pages/CheckoutDelivery'
+import { CheckoutSelect } from './pages/CheckoutSelect'
 import { CheckoutSuccess } from './pages/CheckoutSuccess'
 import { OrderComplete } from './pages/OrderComplete'
 import { Admin } from './pages/Admin'
@@ -16,7 +17,8 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/checkout/:serviceId" element={<Checkout />} />
+          <Route path="/checkout" element={<CheckoutDelivery />} />
+          <Route path="/checkout/select" element={<CheckoutSelect />} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
           <Route path="/order/complete" element={<OrderComplete />} />
           <Route path="/admin" element={<Admin />} />

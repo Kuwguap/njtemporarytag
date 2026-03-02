@@ -11,7 +11,7 @@ import { servicesRoute } from './routes/services.js'
 import { checkoutRoutes } from './routes/checkout.js'
 import { orderRoutes } from './routes/order.js'
 import { authRoute } from './routes/auth.js'
-import { adminRoutes } from './routes/admin.js'
+import { adminAuth, adminApi } from './routes/admin.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -24,7 +24,7 @@ app.use(servicesRoute)
 app.use(checkoutRoutes)
 app.use(orderRoutes)
 app.use(authRoute)
-app.use(adminRoutes)
+app.use('/api/admin', adminAuth, adminApi)
 
 app.use(express.static(path.join(__dirname, '../dist')))
 app.use('/api', (req, res, next) => {

@@ -4,7 +4,7 @@ import { getOrders, getStats, getServicesForAdmin, addService, deleteService, ge
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod'
 
-function authMiddleware(req, res, next) {
+function adminAuth(req, res, next) {
   const auth = req.headers.authorization
   const token = auth?.replace('Bearer ', '')
   if (!token) return res.status(401).json({ message: 'Unauthorized' })
@@ -15,6 +15,8 @@ function authMiddleware(req, res, next) {
     res.status(401).json({ message: 'Unauthorized' })
   }
 }
+
+export { adminAuth }
 
 const adminApi = Router()
 
@@ -77,5 +79,4 @@ adminApi.post('/settings', async (req, res) => {
   }
 })
 
-export const adminRoutes = Router()
-adminRoutes.use('/api/admin', authMiddleware, adminApi)
+export { adminApi }

@@ -60,7 +60,7 @@ export async function verifyCheckout(sessionId: string): Promise<{ ok: boolean; 
   return res.json()
 }
 
-export async function getOrderStatus(sessionId: string): Promise<{ paid: boolean; canComplete: boolean; detailsComplete?: boolean }> {
+export async function getOrderStatus(sessionId: string): Promise<{ paid: boolean; canComplete: boolean; detailsComplete?: boolean; insuranceType?: string }> {
   const res = await fetch(`${API_URL}/api/order/status?session_id=${sessionId}`)
   if (!res.ok) throw new Error('Failed to check order')
   return res.json()

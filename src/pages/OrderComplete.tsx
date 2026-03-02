@@ -1,8 +1,9 @@
 import type { ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { Shield, CheckCircle } from 'lucide-react'
-import { getOrderStatus, completeOrder } from '@/lib/api'
+import { Shield, CheckCircle, Search } from 'lucide-react'
+import { getOrderStatus, completeOrder, fetchSettings } from '@/lib/api'
+import { decodeVin } from '@/lib/vin'
 
 const DELIVERY_METHODS = [
   { value: 'email', label: 'Email delivery' },
@@ -16,6 +17,8 @@ export function OrderComplete() {
   const [status, setStatus] = useState<'loading' | 'form' | 'success' | 'error'>('loading')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [vinLookupStatus, setVinLookupStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [settings, setSettings] = useState({ insurance_monthly_price: 10000, insurance_yearly_price: 90000 })
   const [form, setForm] = useState(() => {
     try {
       const s = typeof window !== 'undefined' ? sessionStorage.getItem('checkout_delivery') : null
@@ -30,9 +33,11 @@ export function OrderComplete() {
         email: p?.email || '',
         phone: '',
         address: '',
-    vin: '',
-    carMakeModel: '',
-    color: '',
+        vin: '',
+        year: '',
+        make: '',
+        model: '',
+        color: '',
     insuranceType: 'own' as 'own' | 'monthly' | 'yearly',
     insuranceCompany: '',
     insurancePolicy: '',
@@ -49,7 +54,9 @@ export function OrderComplete() {
         phone: '',
         address: '',
         vin: '',
-        carMakeModel: '',
+        year: '',
+        make: '',
+        model: '',
         color: '',
         insuranceType: 'own' as 'own' | 'monthly' | 'yearly',
         insuranceCompany: '',
@@ -63,14 +70,32 @@ export function OrderComplete() {
       setStatus('error')
       return
     }
-    getOrderStatus(sessionId)
-      .then((r) => {
-        if (r.paid && r.canComplete && !r.detailsComplete) setStatus('form')
-        else if (r.detailsComplete) setStatus('success')
+    Promise.all([
+      getOrderStatus(sessionId),
+      fetchSettings().then(setSettings).catch(() => {}),
+    ])
+      .then(([r]) => {
+        if (r.paid && r.canComplete && !r.detailsComplete) {
+          setStatus('form')
+          if (r.insuranceType && ['own', 'monthly', 'yearly'].includes(r.insuranceType)) {
+            setForm((f) => ({ ...f, insuranceType: r.insuranceType as 'own' | 'monthly' | 'yearly' }))
+          }
+        } else if (r.detailsComplete) setStatus('success')
         else setStatus('error')
       })
       .catch(() => setStatus('error'))
   }, [sessionId])
+
+  const showMonthly = (settings.insurance_monthly_price ?? 0) > 0
+  const showYearly = (settings.insurance_yearly_price ?? 0) > 0
+  useEffect(() => {
+    if (status !== 'form') return
+    setForm((f) => {
+      if (f.insuranceType === 'monthly' && !showMonthly) return { ...f, insuranceType: 'own' }
+      if (f.insuranceType === 'yearly' && !showYearly) return { ...f, insuranceType: 'own' }
+      return f
+    })
+  }, [status, showMonthly, showYearly])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -78,6 +103,7 @@ export function OrderComplete() {
     setSubmitting(true)
     setError('')
     try {
+      const carMakeModel = [form.year, form.make, form.model].filter(Boolean).join(' ') || ''
       await completeOrder(sessionId, {
         deliveryDate: form.deliveryDate,
         deliveryTime: form.deliveryTime,
@@ -93,7 +119,7 @@ export function OrderComplete() {
         phone: form.phone,
         address: form.address,
         vin: form.vin,
-        carMakeModel: form.carMakeModel,
+        carMakeModel,
         color: form.color,
         insuranceType: form.insuranceType,
         insuranceCompany: form.insuranceCompany,
@@ -252,13 +278,81 @@ export function OrderComplete() {
           <div>
             <h3 className="font-display font-semibold text-ink-900">3. Vehicle info</h3>
             <div className="mt-3 space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-ink-700">VIN *</label>
-                <input type="text" required value={form.vin} onChange={(e) => setForm((f) => ({ ...f, vin: e.target.value }))} className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5" />
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-ink-700">VIN *</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.vin}
+                    onChange={(e) => setForm((f) => ({ ...f, vin: e.target.value.toUpperCase() }))}
+                    onBlur={async () => {
+                      const v = form.vin.trim()
+                      if (v.length < 8) return
+                      setVinLookupStatus('loading')
+                      try {
+                        const r = await decodeVin(v)
+                        if (r) {
+                          setForm((f) => ({ ...f, year: r.year, make: r.make, model: r.model }))
+                          setVinLookupStatus('success')
+                        } else {
+                          setVinLookupStatus('error')
+                        }
+                      } catch {
+                        setVinLookupStatus('error')
+                      }
+                    }}
+                    className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5 font-mono"
+                    placeholder="e.g. 1HGBH41JXMN109186"
+                    maxLength={17}
+                  />
+                </div>
+                <div className="flex shrink-0 flex-col justify-end">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const v = form.vin.trim()
+                      if (v.length < 8) {
+                        setVinLookupStatus('error')
+                        return
+                      }
+                      setVinLookupStatus('loading')
+                      try {
+                        const r = await decodeVin(v)
+                        if (r) {
+                          setForm((f) => ({ ...f, year: r.year, make: r.make, model: r.model }))
+                          setVinLookupStatus('success')
+                        } else {
+                          setVinLookupStatus('error')
+                        }
+                      } catch {
+                        setVinLookupStatus('error')
+                      }
+                    }}
+                    disabled={vinLookupStatus === 'loading'}
+                    className="flex items-center gap-1.5 rounded-xl border border-ink-300 bg-ink-100 px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-200 disabled:opacity-50"
+                  >
+                    <Search className="h-4 w-4" />
+                    {vinLookupStatus === 'loading' ? 'Looking up…' : 'Look up'}
+                  </button>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-ink-700">Make & model *</label>
-                <input type="text" required value={form.carMakeModel} onChange={(e) => setForm((f) => ({ ...f, carMakeModel: e.target.value }))} className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5" placeholder="e.g. Toyota Camry" />
+              {vinLookupStatus === 'error' && (
+                <p className="text-sm text-amber-600">VIN not found. Enter year, make, and model manually.</p>
+              )}
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label className="block text-sm font-medium text-ink-700">Year *</label>
+                  <input type="text" required value={form.year} onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))} className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5" placeholder="e.g. 2020" maxLength={4} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-ink-700">Make *</label>
+                  <input type="text" required value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5" placeholder="e.g. Toyota" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-ink-700">Model *</label>
+                  <input type="text" required value={form.model} onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5" placeholder="e.g. Camry" />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-ink-700">Color *</label>
@@ -270,20 +364,30 @@ export function OrderComplete() {
           <div>
             <h3 className="font-display font-semibold text-ink-900">4. Insurance</h3>
             <p className="mt-1 text-sm text-ink-600">If you paid for insurance at checkout, no further info needed.</p>
-            <div className="mt-3 space-y-2">
-              <label className="flex cursor-pointer gap-3 rounded-xl border border-ink-200 p-4 has-[:checked]:border-amber has-[:checked]:bg-amber/5">
-                <input type="radio" name="ins" checked={form.insuranceType === 'own'} onChange={() => setForm((f) => ({ ...f, insuranceType: 'own' }))} className="mt-1" />
-                <span>I have my own insurance</span>
-              </label>
-              <label className="flex cursor-pointer gap-3 rounded-xl border border-ink-200 p-4 has-[:checked]:border-amber has-[:checked]:bg-amber/5">
-                <input type="radio" name="ins" checked={form.insuranceType === 'monthly'} onChange={() => setForm((f) => ({ ...f, insuranceType: 'monthly' }))} className="mt-1" />
-                <span>I paid $100/month at checkout</span>
-              </label>
-              <label className="flex cursor-pointer gap-3 rounded-xl border border-ink-200 p-4 has-[:checked]:border-amber has-[:checked]:bg-amber/5">
-                <input type="radio" name="ins" checked={form.insuranceType === 'yearly'} onChange={() => setForm((f) => ({ ...f, insuranceType: 'yearly' }))} className="mt-1" />
-                <span>I paid $900/year at checkout</span>
-              </label>
-            </div>
+            {(() => {
+              const monthlyPrice = (settings.insurance_monthly_price ?? 0) / 100
+              const yearlyPrice = (settings.insurance_yearly_price ?? 0) / 100
+              return (
+                <div className="mt-3 space-y-2">
+                  <label className="flex cursor-pointer gap-3 rounded-xl border border-ink-200 p-4 has-[:checked]:border-amber has-[:checked]:bg-amber/5">
+                    <input type="radio" name="ins" checked={form.insuranceType === 'own'} onChange={() => setForm((f) => ({ ...f, insuranceType: 'own' }))} className="mt-1" />
+                    <span>I have my own insurance</span>
+                  </label>
+                  {showMonthly && (
+                    <label className="flex cursor-pointer gap-3 rounded-xl border border-ink-200 p-4 has-[:checked]:border-amber has-[:checked]:bg-amber/5">
+                      <input type="radio" name="ins" checked={form.insuranceType === 'monthly'} onChange={() => setForm((f) => ({ ...f, insuranceType: 'monthly' }))} className="mt-1" />
+                      <span>I paid ${monthlyPrice}/month at checkout</span>
+                    </label>
+                  )}
+                  {showYearly && (
+                    <label className="flex cursor-pointer gap-3 rounded-xl border border-ink-200 p-4 has-[:checked]:border-amber has-[:checked]:bg-amber/5">
+                      <input type="radio" name="ins" checked={form.insuranceType === 'yearly'} onChange={() => setForm((f) => ({ ...f, insuranceType: 'yearly' }))} className="mt-1" />
+                      <span>I paid ${yearlyPrice}/year at checkout</span>
+                    </label>
+                  )}
+                </div>
+              )
+            })()}
             {form.insuranceType === 'own' && (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div>

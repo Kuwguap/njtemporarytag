@@ -19,6 +19,7 @@ orderRoutes.get('/api/order/status', async (req, res) => {
         paid: !!order,
         canComplete: !!order,
         detailsComplete: order?.details_complete || false,
+        insuranceType: order?.insurance_type || 'none',
       })
     }
 
@@ -28,10 +29,12 @@ orderRoutes.get('/api/order/status', async (req, res) => {
     }
 
     const order = await getOrderBySessionId(sessionId)
+    const insuranceType = order?.insurance_type || session.metadata?.insuranceChoice || 'none'
     return res.json({
       paid: true,
       canComplete: true,
       detailsComplete: order?.details_complete || false,
+      insuranceType,
     })
   } catch (err) {
     console.error(err)

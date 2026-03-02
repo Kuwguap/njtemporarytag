@@ -14,7 +14,6 @@ export function Admin() {
   const [loading, setLoading] = useState(true)
   const [newService, setNewService] = useState({ title: '', description: '', price: 15000, image: '' })
   const [settings, setSettings] = useState({
-    tag_price: 15000,
     insurance_monthly_price: 10000,
     insurance_yearly_price: 90000,
     fedex_fee: 5000,
@@ -188,9 +187,9 @@ export function Admin() {
                 />
                 <input
                   type="number"
-                  placeholder="Price (cents)"
-                  value={newService.price}
-                  onChange={(e) => setNewService((s) => ({ ...s, price: Number(e.target.value) }))}
+                  placeholder="Price ($)"
+                  value={newService.price ? newService.price / 100 : ''}
+                  onChange={(e) => setNewService((s) => ({ ...s, price: Math.round(Number(e.target.value || 0) * 100) }))}
                   className="rounded-xl border border-ink-300 px-4 py-2"
                 />
               </div>
@@ -251,7 +250,7 @@ function SettingsPanel({
   token,
   onSave,
 }: {
-  settings: { tag_price: number; insurance_monthly_price: number; insurance_yearly_price: number; fedex_fee: number; test_mode: boolean }
+  settings: { insurance_monthly_price: number; insurance_yearly_price: number; fedex_fee: number; test_mode: boolean }
   setSettings: React.Dispatch<React.SetStateAction<typeof settings>>
   token: string | null
   onSave: () => Promise<void>
@@ -270,46 +269,37 @@ function SettingsPanel({
   return (
     <form onSubmit={handleSubmit} className="max-w-md space-y-6 rounded-2xl border border-ink-200 bg-white p-6">
       <h3 className="font-display text-lg font-semibold text-ink-900">Site Settings</h3>
+      <p className="text-sm text-ink-600">Tag price is set per service in the Services tab.</p>
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-ink-700">Tag Price (cents)</label>
+          <label className="block text-sm font-medium text-ink-700">Insurance Monthly ($)</label>
           <input
             type="number"
-            value={settings.tag_price}
-            onChange={(e) => setSettings((s) => ({ ...s, tag_price: Number(e.target.value) }))}
+            step="0.01"
+            value={settings.insurance_monthly_price / 100}
+            onChange={(e) => setSettings((s) => ({ ...s, insurance_monthly_price: Math.round(Number(e.target.value || 0) * 100) }))}
             className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2"
           />
-          <p className="mt-1 text-xs text-ink-500">15000 = $150</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-ink-700">Insurance Monthly (cents)</label>
+          <label className="block text-sm font-medium text-ink-700">Insurance Yearly ($)</label>
           <input
             type="number"
-            value={settings.insurance_monthly_price}
-            onChange={(e) => setSettings((s) => ({ ...s, insurance_monthly_price: Number(e.target.value) }))}
+            step="0.01"
+            value={settings.insurance_yearly_price / 100}
+            onChange={(e) => setSettings((s) => ({ ...s, insurance_yearly_price: Math.round(Number(e.target.value || 0) * 100) }))}
             className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2"
           />
-          <p className="mt-1 text-xs text-ink-500">10000 = $100</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-ink-700">Insurance Yearly (cents)</label>
+          <label className="block text-sm font-medium text-ink-700">FedEx Delivery Fee ($)</label>
           <input
             type="number"
-            value={settings.insurance_yearly_price}
-            onChange={(e) => setSettings((s) => ({ ...s, insurance_yearly_price: Number(e.target.value) }))}
+            step="0.01"
+            value={settings.fedex_fee / 100}
+            onChange={(e) => setSettings((s) => ({ ...s, fedex_fee: Math.round(Number(e.target.value || 0) * 100) }))}
             className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2"
           />
-          <p className="mt-1 text-xs text-ink-500">90000 = $900</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-ink-700">FedEx Delivery Fee (cents)</label>
-          <input
-            type="number"
-            value={settings.fedex_fee}
-            onChange={(e) => setSettings((s) => ({ ...s, fedex_fee: Number(e.target.value) }))}
-            className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2"
-          />
-          <p className="mt-1 text-xs text-ink-500">5000 = $50</p>
         </div>
         <label className="flex cursor-pointer items-center gap-3">
           <input

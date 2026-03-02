@@ -1,26 +1,32 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Shield } from 'lucide-react'
-import { fetchSettings, createCheckoutSession } from '@/lib/api'
+import { fetchSettings, fetchServices, createCheckoutSession } from '@/lib/api'
 
 type InsuranceChoice = 'none' | 'monthly' | 'yearly'
 
 export function CheckoutSelect() {
   const navigate = useNavigate()
   const [settings, setSettings] = useState({
-    tag_price: 15000,
     insurance_monthly_price: 10000,
     insurance_yearly_price: 90000,
     fedex_fee: 5000,
     test_mode: false,
   })
+  const [defaultServicePrice, setDefaultServicePrice] = useState(15000)
   const [insuranceChoice, setInsuranceChoice] = useState<InsuranceChoice>('none')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetchSettings().then(setSettings).catch(() => {}).finally(() => setLoading(false))
+    Promise.all([
+      fetchSettings().then(setSettings).catch(() => {}),
+      fetchServices().then((svc) => {
+        const s = svc.find((x) => x.id === 'default') ?? svc[0]
+        setDefaultServicePrice(s?.price ?? 15000)
+      }).catch(() => {}),
+    ]).finally(() => setLoading(false))
   }, [])
 
   const stored = typeof window !== 'undefined' ? sessionStorage.getItem('checkout_delivery') : null
@@ -32,7 +38,7 @@ export function CheckoutSelect() {
     }
   }, [loading, deliveryData, navigate])
 
-  const tagPrice = settings.tag_price / 100
+  const tagPrice = defaultServicePrice / 100
   const insuranceMonthly = settings.insurance_monthly_price / 100
   const insuranceYearly = settings.insurance_yearly_price / 100
   const fedexFee = deliveryData?.deliveryMethod === 'overnight_fedex' ? settings.fedex_fee / 100 : 0

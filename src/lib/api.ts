@@ -21,7 +21,6 @@ export interface OrderRecord {
 }
 
 export async function fetchSettings(): Promise<{
-  tag_price: number
   insurance_monthly_price: number
   insurance_yearly_price: number
   fedex_fee: number
@@ -29,7 +28,6 @@ export async function fetchSettings(): Promise<{
 }> {
   const res = await fetch(`${API_URL}/api/settings`)
   if (!res.ok) return {
-    tag_price: 15000,
     insurance_monthly_price: 10000,
     insurance_yearly_price: 90000,
     fedex_fee: 5000,

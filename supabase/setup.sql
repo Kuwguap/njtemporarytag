@@ -60,7 +60,6 @@ create table if not exists settings (
 );
 
 insert into settings (key, value) values
-  ('tag_price', '15000'::jsonb),
   ('insurance_monthly_price', '10000'::jsonb),
   ('insurance_yearly_price', '90000'::jsonb),
   ('fedex_fee', '5000'::jsonb),

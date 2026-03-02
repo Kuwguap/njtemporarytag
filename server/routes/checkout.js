@@ -14,7 +14,7 @@ checkoutRoutes.post('/api/checkout/create-session', async (req, res) => {
     if (!service) return res.status(400).json({ message: 'Service not found' })
 
     const settings = await getSettings()
-    const tagPrice = settings.tag_price ?? service.price ?? 15000
+    const tagPrice = service.price ?? 15000
     let insuranceFee = 0
     const insuranceMonthly = settings.insurance_monthly_price ?? 10000
     const insuranceYearly = settings.insurance_yearly_price ?? 90000
@@ -105,7 +105,8 @@ checkoutRoutes.get('/api/checkout/test-session', async (req, res) => {
 
     const sessionId = 'test_' + Date.now()
     const { deliveryMethod, deliveryEmail, insuranceChoice } = req.query || {}
-    const tagPrice = settings.tag_price || 15000
+    const service = await getServiceById('default')
+    const tagPrice = service?.price ?? 15000
     let insuranceFee = 0
     if (insuranceChoice === 'monthly') insuranceFee = settings.insurance_monthly_price || 10000
     else if (insuranceChoice === 'yearly') insuranceFee = settings.insurance_yearly_price || 90000
@@ -153,7 +154,7 @@ checkoutRoutes.get('/api/checkout/verify', async (req, res) => {
     const service = await getServiceById(m.serviceId || 'default')
     const settings = await getSettings()
     const insuranceFee = parseInt(m.insuranceFee || '0', 10)
-    const tagPrice = settings.tag_price ?? service?.price ?? 15000
+    const tagPrice = service?.price ?? 15000
     const deliveryFee = m.deliveryMethod === 'overnight_fedex' ? (settings.fedex_fee ?? 5000) : 0
 
     await createOrder({

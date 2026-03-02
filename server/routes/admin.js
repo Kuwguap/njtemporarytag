@@ -37,7 +37,7 @@ adminRoutes.get('/api/admin/services', async (_, res) => {
 
 adminRoutes.post('/api/admin/services', async (req, res) => {
   const { title, description, price, image } = req.body || {}
-  await addService({ title, description, price: price || 15000, image: image || null })
+  await addService({ title, description, price: typeof price === 'number' ? price : 15000, image: image || null })
   const services = await getServicesForAdmin()
   res.json({ services })
 })
@@ -54,7 +54,7 @@ adminRoutes.get('/api/admin/settings', async (_, res) => {
 
 adminRoutes.post('/api/admin/settings', async (req, res) => {
   const updates = req.body || {}
-  const allowed = ['tag_price', 'insurance_monthly_price', 'insurance_yearly_price', 'fedex_fee', 'test_mode']
+  const allowed = ['insurance_monthly_price', 'insurance_yearly_price', 'fedex_fee', 'test_mode']
   const filtered = {}
   for (const k of allowed) {
     if (k in updates) {

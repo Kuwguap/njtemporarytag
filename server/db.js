@@ -127,7 +127,6 @@ export async function getServicesForAdmin() {
 }
 
 const DEFAULT_SETTINGS = {
-  tag_price: 15000,
   insurance_monthly_price: 10000,
   insurance_yearly_price: 90000,
   fedex_fee: 5000,

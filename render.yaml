@@ -2,7 +2,7 @@ services:
   - type: web
     name: njtemporarytag
     env: node
-    buildCommand: npm install && npm run build
+    buildCommand: NODE_ENV=development npm ci && npm run build
     startCommand: node server/index.js
     envVars:
       - key: NODE_ENV

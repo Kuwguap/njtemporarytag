@@ -27,6 +27,9 @@ app.use(authRoute)
 app.use(adminRoutes)
 
 app.use(express.static(path.join(__dirname, '../dist')))
+app.use('/api', (req, res, next) => {
+  res.status(404).json({ error: 'Not found' })
+})
 app.get('*', (_, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'))
 })

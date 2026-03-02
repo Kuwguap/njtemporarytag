@@ -16,43 +16,41 @@ function authMiddleware(req, res, next) {
   }
 }
 
-export const adminRoutes = Router()
+const adminApi = Router()
 
-adminRoutes.use('/api/admin', authMiddleware)
-
-adminRoutes.get('/api/admin/orders', async (_, res) => {
+adminApi.get('/orders', async (_, res) => {
   const orders = await getOrders()
   res.json({ orders })
 })
 
-adminRoutes.get('/api/admin/stats', async (_, res) => {
+adminApi.get('/stats', async (_, res) => {
   const stats = await getStats()
   res.json(stats)
 })
 
-adminRoutes.get('/api/admin/services', async (_, res) => {
+adminApi.get('/services', async (_, res) => {
   const services = await getServicesForAdmin()
   res.json({ services })
 })
 
-adminRoutes.post('/api/admin/services', async (req, res) => {
+adminApi.post('/services', async (req, res) => {
   const { title, description, price, image } = req.body || {}
   await addService({ title, description, price: typeof price === 'number' ? price : 15000, image: image || null })
   const services = await getServicesForAdmin()
   res.json({ services })
 })
 
-adminRoutes.delete('/api/admin/services/:id', async (req, res) => {
+adminApi.delete('/services/:id', async (req, res) => {
   await deleteService(req.params.id)
   res.json({ ok: true })
 })
 
-adminRoutes.get('/api/admin/settings', async (_, res) => {
+adminApi.get('/settings', async (_, res) => {
   const settings = await getSettings()
   res.json(settings)
 })
 
-adminRoutes.post('/api/admin/settings', async (req, res) => {
+adminApi.post('/settings', async (req, res) => {
   try {
     const updates = req.body || {}
     const allowed = ['insurance_monthly_price', 'insurance_yearly_price', 'fedex_fee', 'test_mode']
@@ -78,3 +76,6 @@ adminRoutes.post('/api/admin/settings', async (req, res) => {
     res.status(500).json({ error: err.message || 'Failed to save settings' })
   }
 })
+
+export const adminRoutes = Router()
+adminRoutes.use('/api/admin', authMiddleware, adminApi)

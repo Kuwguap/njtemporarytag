@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 import { getServiceById, createOrder, getSettings, getOrderBySessionId } from '../db.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_fake')
-const APP_URL = process.env.APP_URL || 'http://localhost:8080'
+const APP_URL = (process.env.APP_URL || 'http://localhost:8080').split(',')[0].trim().replace(/\/$/, '')
 
 export const checkoutRoutes = Router()
 

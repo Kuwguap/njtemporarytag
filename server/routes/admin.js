@@ -53,14 +53,28 @@ adminRoutes.get('/api/admin/settings', async (_, res) => {
 })
 
 adminRoutes.post('/api/admin/settings', async (req, res) => {
-  const updates = req.body || {}
-  const allowed = ['insurance_monthly_price', 'insurance_yearly_price', 'fedex_fee', 'test_mode']
-  const filtered = {}
-  for (const k of allowed) {
-    if (k in updates) {
-      filtered[k] = k === 'test_mode' ? (updates[k] === true || updates[k] === 'true') : Number(updates[k]) || 0
+  try {
+    const updates = req.body || {}
+    const allowed = ['insurance_monthly_price', 'insurance_yearly_price', 'fedex_fee', 'test_mode']
+    const filtered = {}
+    for (const k of allowed) {
+      if (k in updates) {
+        if (k === 'test_mode') {
+          filtered[k] = updates[k] === true || updates[k] === 'true'
+        } else {
+          const num = Number(updates[k])
+          filtered[k] = isNaN(num) ? 0 : Math.round(num)
+        }
+      }
     }
+    if (Object.keys(filtered).length === 0) {
+      const settings = await getSettings()
+      return res.json(settings)
+    }
+    const settings = await updateSettings(filtered)
+    res.json(settings)
+  } catch (err) {
+    console.error('[Admin] Settings save error:', err)
+    res.status(500).json({ error: err.message || 'Failed to save settings' })
   }
-  const settings = await updateSettings(filtered)
-  res.json(settings)
 })

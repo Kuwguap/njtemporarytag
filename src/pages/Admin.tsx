@@ -27,20 +27,33 @@ export function Admin() {
   useEffect(() => {
     if (!token) return
     setLoading(true)
-    Promise.all([
-      fetchAdmin('/api/admin/stats', token),
-      fetchAdmin('/api/admin/orders', token),
-      fetchAdmin('/api/admin/services', token),
-      fetchAdmin('/api/admin/settings', token),
-    ])
-      .then(([s, o, svc, st]) => {
+    const fetchData = async () => {
+      try {
+        const [s, o, svc, st] = await Promise.all([
+          fetchAdmin('/api/admin/stats', token),
+          fetchAdmin('/api/admin/orders', token),
+          fetchAdmin('/api/admin/services', token),
+          fetchAdmin('/api/admin/settings', token),
+        ])
         setStats(s as Record<string, unknown>)
         setOrders((o as { orders?: unknown[] })?.orders ?? [])
         setServices((svc as { services?: unknown[] })?.services ?? [])
-        if (st && typeof st === 'object') setSettings((prev) => ({ ...prev, ...(st as object) }))
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+        if (st && typeof st === 'object' && !Array.isArray(st)) {
+          setSettings((prev) => ({
+            ...prev,
+            insurance_monthly_price: Number((st as Record<string, unknown>).insurance_monthly_price) || prev.insurance_monthly_price,
+            insurance_yearly_price: Number((st as Record<string, unknown>).insurance_yearly_price) || prev.insurance_yearly_price,
+            fedex_fee: Number((st as Record<string, unknown>).fedex_fee) || prev.fedex_fee,
+            test_mode: (st as Record<string, unknown>).test_mode === true || (st as Record<string, unknown>).test_mode === 'true',
+          }))
+        }
+      } catch (e) {
+        console.error('Admin fetch error:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
   }, [token, tab])
 
   function handleLogout() {
@@ -235,7 +248,9 @@ export function Admin() {
             onSave={async () => {
               if (!token) return
               const updated = await postAdmin('/api/admin/settings', token, settings) as typeof settings
-              setSettings(updated)
+              if (updated && typeof updated === 'object') {
+                setSettings((prev) => ({ ...prev, ...updated }))
+              }
             }}
           />
         )}
@@ -256,12 +271,20 @@ function SettingsPanel({
   onSave: () => Promise<void>
 }) {
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [saved, setSaved] = useState(false)
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!token) return
     setSaving(true)
+    setSaveError('')
+    setSaved(false)
     try {
       await onSave()
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
       setSaving(false)
     }
@@ -312,6 +335,8 @@ function SettingsPanel({
         </label>
         <p className="text-xs text-ink-500">When enabled, checkout skips Stripe and creates a test order</p>
       </div>
+      {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+      {saved && <p className="text-sm text-green-600">Settings saved.</p>}
       <button type="submit" disabled={saving} className="btn-primary">
         {saving ? 'Saving…' : 'Save Settings'}
       </button>

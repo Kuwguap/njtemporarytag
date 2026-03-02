@@ -157,8 +157,15 @@ export async function getSettings() {
 export async function updateSettings(updates) {
   if (useSupabase) {
     for (const [key, value] of Object.entries(updates)) {
-      const jsonVal = typeof value === 'boolean' ? value : (key === 'test_mode' ? value === 'true' || value === true : Number(value))
-      await supabase.from('settings').upsert({ key, value: jsonVal, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+      const jsonVal = typeof value === 'boolean' ? value : Number(value)
+      const { error } = await supabase.from('settings').upsert(
+        { key, value: jsonVal, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      )
+      if (error) {
+        console.error('[DB] Settings upsert error:', key, error)
+        throw new Error(`Failed to save setting ${key}: ${error.message}`)
+      }
     }
     return getSettings()
   }

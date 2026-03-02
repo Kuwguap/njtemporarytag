@@ -106,7 +106,10 @@ export async function postAdmin(path: string, token: string, body?: unknown): Pr
     },
     body: body ? JSON.stringify(body) : undefined,
   })
-  if (!res.ok) throw new Error('Request failed')
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { error?: string })?.error || `Request failed (${res.status})`)
+  }
   return res.json()
 }
 

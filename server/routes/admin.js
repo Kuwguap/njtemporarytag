@@ -58,8 +58,11 @@ adminApi.post('/telegram/test', async (req, res) => {
     const { chatIds: bodyIds } = req.body || {}
     const settings = await getSettings()
     const chatIds = (bodyIds ?? settings?.telegram_chat_ids ?? process.env.TELEGRAM_CHAT_IDS ?? '').trim()
+    if (!chatIds) return res.json({ sent: false, error: 'Enter chat IDs above first' })
+    if (!process.env.TELEGRAM_BOT_TOKEN) return res.json({ sent: false, error: 'TELEGRAM_BOT_TOKEN not set on Render' })
     const result = await sendTestMessage(chatIds)
-    res.json({ sent: result.sent, error: result.error, results: result.results })
+    const errMsg = result.error || result.results?.filter((r) => !r.ok).map((r) => `${r.chatId}: ${r.error}`).join('; ')
+    res.json({ sent: result.sent, error: errMsg || null, results: result.results })
   } catch (err) {
     res.status(500).json({ sent: false, error: err.message })
   }

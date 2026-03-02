@@ -339,7 +339,7 @@ function SettingsPanel({
             placeholder={"123456789\n-1001234567890\nOr comma-separated: 123, -100456"}
           />
           <p className="mt-1 text-xs text-ink-500">
-            One per line or comma-separated. Personal: positive ID. Group: negative ID (e.g. -1001234567890). Bot must be in the group.
+            One per line or comma-separated. Personal: positive ID. Group: negative ID (e.g. -1001234567890). Bot must be in the group. You must message the bot first (send /start) before it can message you.
           </p>
           <button
             type="button"

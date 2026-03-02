@@ -89,5 +89,6 @@ export async function sendTestMessage(chatIds) {
     }
   }
   const sent = results.some((r) => r.ok)
-  return { sent, results }
+  const error = sent ? null : (results.find((r) => !r.ok)?.error || 'Send failed')
+  return { sent, results, error }
 }

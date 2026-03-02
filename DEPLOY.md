@@ -18,24 +18,35 @@
 
 ## 2. Render (recommended — all-in-one)
 
-1. Connect GitHub repo at [render.com](https://render.com)
-2. **New → Web Service**
-3. Build: `npm install && npm run build`
-4. Start: `node server/index.js`
-5. Add environment variables:
+**Option A: Blueprint (render.yaml)**
+
+1. Push repo to GitHub
+2. Go to [render.com](https://render.com) → **New** → **Blueprint**
+3. Connect your GitHub repo
+4. Render will detect `render.yaml` and create the service
+5. Add environment variables in the dashboard (all `sync: false` — you provide values):
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `ADMIN_PASSWORD` | Yes | Admin login password |
 | `JWT_SECRET` | Yes | Random string for JWT |
 | `STRIPE_SECRET_KEY` | Yes | Stripe secret key |
-| `APP_URL` | Yes | Your Render URL (e.g. `https://nj-temporary-tag.onrender.com`) |
+| `APP_URL` | Yes | Your Render URL (e.g. `https://njtemporarytag.onrender.com`) |
 | `SUPABASE_URL` | Yes | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
 | `TELEGRAM_BOT_TOKEN` | No | From @BotFather |
 | `TELEGRAM_CHAT_IDS` | No | Comma-separated chat IDs |
+| `RESEND_API_KEY` | No | Resend API key for order emails |
+| `FROM_EMAIL` | No | Verified sender (e.g. `NJ Temporary Tag <orders@yourdomain.com>`) |
 
 6. Deploy. Your site runs at the Render URL.
+
+**Option B: Manual Web Service**
+
+1. **New** → **Web Service**
+2. Build: `npm install && npm run build`
+3. Start: `node server/index.js`
+4. Add the environment variables above
 
 ---
 

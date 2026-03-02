@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   Shield,
   Clock,
@@ -66,10 +66,21 @@ const FAQ_ITEMS = [
 export function Index() {
   const [services, setServices] = useState<Service[]>([])
   const [faqOpen, setFaqOpen] = useState<number | null>(null)
+  const { hash } = useLocation()
 
   useEffect(() => {
     fetchServices().then(setServices).catch(() => setServices([]))
   }, [])
+
+  useEffect(() => {
+    if (hash) {
+      const id = hash.replace('#', '')
+      const el = document.getElementById(id)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+  }, [hash])
 
   return (
     <div className="min-h-screen">
@@ -117,7 +128,7 @@ export function Index() {
       </section>
 
       {/* Benefits */}
-      <section id="benefits" className="section-padding bg-ink-50">
+      <section id="benefits" className="section-padding bg-ink-50 scroll-mt-20">
         <div className="container-wide">
           <h2 className="font-display text-3xl font-bold text-ink-900 sm:text-4xl">
             Why NJ Temporary Tag?
@@ -189,7 +200,7 @@ export function Index() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="section-padding bg-ink-50">
+      <section id="how-it-works" className="section-padding bg-ink-50 scroll-mt-20">
         <div className="container-wide">
           <h2 className="font-display text-3xl font-bold text-ink-900">How It Works</h2>
           <p className="mt-2 text-ink-600">Three simple steps. No DMV. No hassle.</p>
@@ -232,7 +243,7 @@ export function Index() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="section-padding bg-ink-50">
+      <section id="pricing" className="section-padding bg-ink-50 scroll-mt-20">
         <div className="container-narrow text-center">
           <h2 className="font-display text-3xl font-bold text-ink-900">Simple Pricing</h2>
           <div className="mt-8 inline-block rounded-3xl border-2 border-amber/50 bg-white p-8 shadow-lg">
@@ -254,7 +265,7 @@ export function Index() {
       </section>
 
       {/* Services grid */}
-      <section id="services" className="section-padding bg-white">
+      <section id="services" className="section-padding bg-white scroll-mt-20">
         <div className="container-wide">
           <h2 className="font-display text-3xl font-bold text-ink-900">Choose Your Package</h2>
           <p className="mt-2 text-ink-600">Select a service below to get started.</p>
@@ -275,7 +286,7 @@ export function Index() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="section-padding bg-ink-50">
+      <section id="faq" className="section-padding bg-ink-50 scroll-mt-20">
         <div className="container-narrow">
           <h2 className="font-display text-3xl font-bold text-ink-900">FAQ</h2>
           <div className="mt-8 space-y-2">

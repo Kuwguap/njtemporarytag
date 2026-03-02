@@ -1,3 +1,4 @@
+import type { ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { Shield, CheckCircle } from 'lucide-react'
@@ -263,11 +264,11 @@ export function OrderComplete() {
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-ink-700">Insurance company *</label>
-                  <input type="text" required={form.insuranceType === 'own'} value={form.insuranceCompany} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, insuranceCompany: e.target.value }))} className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5" />
+                  <input type="text" required={form.insuranceType === 'own'} value={form.insuranceCompany} onChange={(e: ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, insuranceCompany: e.target.value }))} className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-ink-700">Policy number *</label>
-                  <input type="text" required={form.insuranceType === 'own'} value={form.insurancePolicy} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, insurancePolicy: e.target.value }))} className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5" />
+                  <input type="text" required={form.insuranceType === 'own'} value={form.insurancePolicy} onChange={(e: ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, insurancePolicy: e.target.value }))} className="mt-1 w-full rounded-xl border border-ink-300 px-4 py-2.5" />
                 </div>
               </div>
             )}

@@ -276,6 +276,8 @@ function SettingsPanel({
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [saved, setSaved] = useState(false)
+  const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle')
+  const [testError, setTestError] = useState('')
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!token) return
@@ -339,6 +341,32 @@ function SettingsPanel({
           <p className="mt-1 text-xs text-ink-500">
             One per line or comma-separated. Personal: positive ID. Group: negative ID (e.g. -1001234567890). Bot must be in the group.
           </p>
+          <button
+            type="button"
+            onClick={async () => {
+              setTestStatus('sending')
+              setTestError('')
+              try {
+                const r = await postAdmin('/api/admin/telegram/test', token!, { chatIds: settings.telegram_chat_ids }) as { sent?: boolean; error?: string; results?: Array<{ chatId: string; ok: boolean; error?: string }> }
+                if (r.sent) {
+                  setTestStatus('ok')
+                  setTimeout(() => setTestStatus('idle'), 3000)
+                } else {
+                  setTestStatus('err')
+                  const errs = r.results?.filter((x) => !x.ok).map((x) => `${x.chatId}: ${x.error}`).join('; ')
+                  setTestError(r.error || errs || 'Test failed')
+                }
+              } catch (e) {
+                setTestStatus('err')
+                setTestError(e instanceof Error ? e.message : 'Test failed')
+              }
+            }}
+            disabled={testStatus === 'sending' || !token || !settings.telegram_chat_ids.trim()}
+            className="mt-2 rounded-lg border border-ink-300 bg-ink-100 px-3 py-1.5 text-sm font-medium text-ink-700 hover:bg-ink-200 disabled:opacity-50"
+          >
+            {testStatus === 'sending' ? 'Sending…' : testStatus === 'ok' ? 'Sent ✓' : 'Test Telegram'}
+          </button>
+          {testError && <p className="mt-1 text-sm text-red-600">{testError}</p>}
         </div>
         <label className="flex cursor-pointer items-center gap-3">
           <input

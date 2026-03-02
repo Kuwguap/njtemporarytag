@@ -115,7 +115,7 @@ orderRoutes.post('/api/order/complete', async (req, res) => {
       await sendSuccessEmail(updated)
     }
 
-    res.json({ ok: true, telegramSent: tg.sent })
+    res.json({ ok: true, telegramSent: tg.sent, telegramError: tg.error || null })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: err.message || 'Failed to complete order' })

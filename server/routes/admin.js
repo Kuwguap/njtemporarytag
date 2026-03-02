@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import { getOrders, getStats, getServicesForAdmin, addService, deleteService, getSettings, updateSettings } from '../db.js'
+import { sendTestMessage } from '../telegram.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod'
 
@@ -50,6 +51,18 @@ adminApi.delete('/services/:id', async (req, res) => {
 adminApi.get('/settings', async (_, res) => {
   const settings = await getSettings()
   res.json(settings)
+})
+
+adminApi.post('/telegram/test', async (req, res) => {
+  try {
+    const { chatIds: bodyIds } = req.body || {}
+    const settings = await getSettings()
+    const chatIds = (bodyIds ?? settings?.telegram_chat_ids ?? process.env.TELEGRAM_CHAT_IDS ?? '').trim()
+    const result = await sendTestMessage(chatIds)
+    res.json({ sent: result.sent, error: result.error, results: result.results })
+  } catch (err) {
+    res.status(500).json({ sent: false, error: err.message })
+  }
 })
 
 adminApi.post('/settings', async (req, res) => {

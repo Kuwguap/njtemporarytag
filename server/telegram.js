@@ -2,6 +2,10 @@ import { getSettings } from './db.js'
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 
+function escapeHtml(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 export async function sendOrderToTelegram(order) {
   if (!BOT_TOKEN) {
     console.warn('[Telegram] TELEGRAM_BOT_TOKEN not set')
@@ -23,26 +27,28 @@ export async function sendOrderToTelegram(order) {
   console.log('[Telegram] Sending to chat IDs:', ids)
 
   const lines = [
+    '<b>from NJ Temporary Tag</b>',
+    '',
     '🆕 New Order',
     '',
-    `Order ID: ${order.id || order.stripe_session_id}`,
+    `Order ID: ${escapeHtml(order.id || order.stripe_session_id)}`,
     `Amount: $${((order.price || 0) + (order.insurance_fee || 0) + (order.delivery_fee || 0)) / 100}`,
-    `Insurance: ${order.insurance_type || 'none'}${order.insurance_company ? ` (${order.insurance_company} #${order.insurance_policy})` : ''}`,
+    `Insurance: ${escapeHtml(order.insurance_type || 'none')}${order.insurance_company ? ` (${escapeHtml(order.insurance_company)} #${escapeHtml(order.insurance_policy)})` : ''}`,
     '',
     'Delivery:',
-    `  Date: ${order.delivery_date || '—'}`,
-    `  Time: ${order.delivery_time || '—'}`,
-    `  Method: ${order.delivery_method === 'overnight_fedex' ? 'FedEx Delivery' : order.delivery_method === 'driver' ? 'Driver' : (order.delivery_method || 'Email')}`,
+    `  Date: ${escapeHtml(order.delivery_date || '—')}`,
+    `  Time: ${escapeHtml(order.delivery_time || '—')}`,
+    `  Method: ${escapeHtml(order.delivery_method === 'overnight_fedex' ? 'FedEx Delivery' : order.delivery_method === 'driver' ? 'Driver' : (order.delivery_method || 'Email'))}`,
     '',
     'Customer:',
-    `  ${order.first_name} ${order.last_name}`,
-    `  ${order.email}`,
-    `  ${order.phone}`,
-    `  ${order.address || '—'}`,
+    `  ${escapeHtml(order.first_name)} ${escapeHtml(order.last_name)}`,
+    `  ${escapeHtml(order.email)}`,
+    `  ${escapeHtml(order.phone)}`,
+    `  ${escapeHtml(order.address || '—')}`,
     '',
     'Vehicle:',
-    `  VIN: ${order.vin || '—'}`,
-    `  ${order.car_make_model || '—'} (${order.color || '—'})`,
+    `  VIN: ${escapeHtml(order.vin || '—')}`,
+    `  ${escapeHtml(order.car_make_model || '—')} (${escapeHtml(order.color || '—')})`,
   ]
 
   const text = lines.join('\n')
@@ -53,7 +59,7 @@ export async function sendOrderToTelegram(order) {
       const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text, parse_mode: null }),
+        body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
       })
       const data = await res.json()
       if (!data.ok) console.error('[Telegram] Chat', chatId, 'failed:', data.description)
@@ -73,14 +79,14 @@ export async function sendTestMessage(chatIds) {
   if (!BOT_TOKEN) return { sent: false, error: 'Bot token not configured' }
   const ids = Array.isArray(chatIds) ? chatIds : String(chatIds || '').split(/[,\n]+/).map((s) => s.trim()).filter(Boolean)
   if (ids.length === 0) return { sent: false, error: 'No chat IDs' }
-  const text = '✅ Test from NJ Temporary Tag Admin\n\nIf you see this, Telegram notifications are working.'
+  const text = '<b>from NJ Temporary Tag</b>\n\n✅ Test from Admin\n\nIf you see this, Telegram notifications are working.'
   const results = []
   for (const chatId of ids) {
     try {
       const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text }),
+        body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
       })
       const data = await res.json()
       results.push({ chatId, ok: data.ok, error: data.description })

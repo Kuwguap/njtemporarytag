@@ -9,7 +9,11 @@ export function CheckoutDelivery() {
   const navigate = useNavigate()
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('email')
   const [email, setEmail] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [address, setAddress] = useState('')
   const [fedexFee, setFedexFee] = useState(50)
+  const needsAddress = deliveryMethod === 'driver' || deliveryMethod === 'overnight_fedex'
 
   useEffect(() => {
     fetchSettings().then((s) => setFedexFee((s.fedex_fee ?? 5000) / 100))
@@ -18,7 +22,14 @@ export function CheckoutDelivery() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.trim() || !email.includes('@')) return
-    sessionStorage.setItem('checkout_delivery', JSON.stringify({ deliveryMethod, email }))
+    if (needsAddress && (!firstName.trim() || !lastName.trim() || !address.trim())) return
+    sessionStorage.setItem('checkout_delivery', JSON.stringify({
+      deliveryMethod,
+      email,
+      firstName: needsAddress ? firstName.trim() : undefined,
+      lastName: needsAddress ? lastName.trim() : undefined,
+      address: needsAddress ? address.trim() : undefined,
+    }))
     navigate('/checkout/select')
   }
 
@@ -88,19 +99,69 @@ export function CheckoutDelivery() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="checkout-email" className="block text-sm font-medium text-ink-700">
-              Email address
-            </label>
-            <input
-              id="checkout-email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-ink-300 px-4 py-3"
-              required
-            />
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="checkout-email" className="block text-sm font-medium text-ink-700">
+                Email address
+              </label>
+              <input
+                id="checkout-email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-ink-300 px-4 py-3"
+                required
+              />
+            </div>
+            {needsAddress && (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="checkout-first" className="block text-sm font-medium text-ink-700">
+                      First name *
+                    </label>
+                    <input
+                      id="checkout-first"
+                      type="text"
+                      placeholder="John"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="mt-2 w-full rounded-xl border border-ink-300 px-4 py-3"
+                      required={needsAddress}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="checkout-last" className="block text-sm font-medium text-ink-700">
+                      Last name *
+                    </label>
+                    <input
+                      id="checkout-last"
+                      type="text"
+                      placeholder="Doe"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="mt-2 w-full rounded-xl border border-ink-300 px-4 py-3"
+                      required={needsAddress}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="checkout-address" className="block text-sm font-medium text-ink-700">
+                    Delivery address *
+                  </label>
+                  <input
+                    id="checkout-address"
+                    type="text"
+                    placeholder="Street, city, state, zip"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="mt-2 w-full rounded-xl border border-ink-300 px-4 py-3"
+                    required={needsAddress}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <button type="submit" className="btn-primary w-full">

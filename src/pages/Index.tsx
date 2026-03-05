@@ -40,7 +40,7 @@ const DELIVERY = [
 const STATS = [
   { value: '10,000+', label: 'Tags Delivered' },
   { value: '1–2 hrs', label: 'Delivery Time' },
-  { value: '7 Days', label: 'Tag Validity' },
+  { value: '30 Days', label: 'Tag Validity' },
 ]
 
 const STEPS = [
@@ -250,7 +250,7 @@ export function Index() {
             <div className="font-display text-4xl font-bold text-amber">{formatPrice(15000)}</div>
             <p className="mt-2 text-ink-600">Standard temp tag package</p>
             <ul className="mt-4 space-y-2 text-left text-ink-700">
-              {['Email or 1-hour delivery', 'MVC compliant', '7-day validity', 'Full support'].map((item) => (
+              {['Email or 1-hour delivery', 'MVC compliant', '30-day validity', 'Full support'].map((item) => (
                 <li key={item} className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-amber" />
                   {item}

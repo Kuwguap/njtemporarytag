@@ -37,7 +37,7 @@ export async function getServices() {
   }
   const { services } = loadJson()
   return services.length ? services : [
-    { id: 'default', title: 'Standard Temp Tag', description: 'Same-day temporary vehicle tag. Email or 1-hour delivery.', price: 15000, image: null, created_at: new Date().toISOString() }
+    { id: 'default', title: 'Standard Temp Tag', description: 'Same-day temporary vehicle tag. Email or 1-hour delivery. 30-day validity.', price: 15000, image: null, created_at: new Date().toISOString() }
   ]
 }
 

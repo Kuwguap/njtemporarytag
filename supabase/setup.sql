@@ -50,7 +50,7 @@ create table if not exists activity (
 );
 
 insert into services (id, title, description, price) values
-  ('default', 'Standard Temp Tag', 'Same-day temporary vehicle tag. Email, driver, or mail delivery.', 15000)
+  ('default', 'Standard Temp Tag', 'Same-day temporary vehicle tag. Email, driver, or mail delivery. 30-day validity.', 15000)
 on conflict (id) do nothing;
 
 create table if not exists settings (
